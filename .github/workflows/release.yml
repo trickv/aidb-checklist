@@ -1,0 +1,162 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., v1.0.0)'
+        required: true
+        type: string
+
+jobs:
+  build-and-release:
+    name: Build and Release iOS
+    runs-on: macos-14
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Determine version
+      id: version
+      run: |
+        if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+          echo "version=${{ inputs.version }}" >> $GITHUB_OUTPUT
+        else
+          echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Install CocoaPods
+      run: |
+        sudo gem install cocoapods
+        pod --version
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Cache Pods
+      uses: actions/cache@v4
+      with:
+        path: ios/Pods
+        key: ${{ runner.os }}-pods-${{ hashFiles('ios/Podfile.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-pods-
+
+    - name: Install CocoaPods dependencies
+      working-directory: ./ios
+      run: pod install --repo-update
+
+    - name: Build iOS for device (Release, unsigned)
+      working-directory: ./ios
+      run: |
+        xcodebuild -workspace ResolutionTracker.xcworkspace \
+          -scheme ResolutionTracker \
+          -sdk iphoneos \
+          -configuration Release \
+          -derivedDataPath build \
+          CODE_SIGN_IDENTITY="" \
+          CODE_SIGNING_REQUIRED=NO \
+          CODE_SIGNING_ALLOWED=NO \
+          build 2>&1 | tee /tmp/xcodebuild-output.log
+        BUILD_EXIT_CODE=${PIPESTATUS[0]}
+        if [ $BUILD_EXIT_CODE -ne 0 ]; then
+          echo "Build failed, showing last 50 lines:"
+          tail -50 /tmp/xcodebuild-output.log
+          exit $BUILD_EXIT_CODE
+        fi
+
+    - name: Create IPA
+      working-directory: ./ios/build/Build/Products
+      run: |
+        APP_PATH=$(find Release-iphoneos -name "*.app" -type d | head -1)
+        if [ -z "$APP_PATH" ]; then
+          echo "Error: No .app bundle found"
+          exit 1
+        fi
+        mkdir -p Payload
+        cp -R "$APP_PATH" Payload/
+        zip -r ResolutionTracker-${{ steps.version.outputs.version }}.ipa Payload/
+        rm -rf Payload
+        echo "Created IPA:"
+        ls -la *.ipa
+
+    - name: Generate AltStore source JSON
+      run: |
+        VERSION="${{ steps.version.outputs.version }}"
+        VERSION_NUM="${VERSION#v}"
+        DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+        IPA_SIZE=$(stat -f%z ios/build/Build/Products/ResolutionTracker-${VERSION}.ipa 2>/dev/null || stat -c%s ios/build/Build/Products/ResolutionTracker-${VERSION}.ipa)
+
+        cat > altstore-source.json << EOF
+        {
+          "name": "Resolution Tracker",
+          "identifier": "com.trickv.resolution-tracker-source",
+          "sourceURL": "https://github.com/trickv/aidb-checklist/releases/latest/download/altstore-source.json",
+          "apps": [
+            {
+              "name": "Resolution Tracker",
+              "bundleIdentifier": "com.trickv.ResolutionTracker",
+              "developerName": "trickv",
+              "subtitle": "Track your New Year's resolutions",
+              "localizedDescription": "A simple app to track and manage your New Year's resolutions. Built with React Native.",
+              "iconURL": "https://github.com/trickv/aidb-checklist/raw/main/assets/icon.png",
+              "tintColor": "4A90D9",
+              "screenshotURLs": [],
+              "versions": [
+                {
+                  "version": "${VERSION_NUM}",
+                  "date": "${DATE}",
+                  "size": ${IPA_SIZE},
+                  "downloadURL": "https://github.com/trickv/aidb-checklist/releases/download/${VERSION}/ResolutionTracker-${VERSION}.ipa",
+                  "localizedDescription": "Initial release"
+                }
+              ]
+            }
+          ],
+          "news": []
+        }
+        EOF
+
+        echo "Generated AltStore source:"
+        cat altstore-source.json
+
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        name: Resolution Tracker ${{ steps.version.outputs.version }}
+        body: |
+          ## Resolution Tracker ${{ steps.version.outputs.version }}
+
+          ### Installation via AltStore
+
+          **Option 1: Add as AltStore Source (recommended)**
+          1. Open AltStore on your iPhone
+          2. Go to Sources tab
+          3. Tap + and add this URL:
+             ```
+             https://github.com/trickv/aidb-checklist/releases/latest/download/altstore-source.json
+             ```
+          4. Find "Resolution Tracker" in Browse and install
+
+          **Option 2: Direct IPA Install**
+          1. Download `ResolutionTracker-${{ steps.version.outputs.version }}.ipa` below
+          2. Open the file with AltStore or use AltServer to sideload
+
+          ### Requirements
+          - iOS 15.1 or later
+          - AltStore installed on your device
+        files: |
+          ios/build/Build/Products/ResolutionTracker-${{ steps.version.outputs.version }}.ipa
+          altstore-source.json
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

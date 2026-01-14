@@ -39,8 +39,9 @@ export const fonts = {
   large: 20,
   xlarge: 24,
   title: 32,
+};
 
-  // Weights (as strings for React Native)
+export const fontWeights = {
   regular: '400' as const,
   medium: '500' as const,
   semibold: '600' as const,

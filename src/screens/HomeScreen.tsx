@@ -11,7 +11,7 @@ import {useFocusEffect} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {Resolution, getCompletionStatus, CompletionStatus} from '../types';
 import {loadResolutions} from '../storage/resolutions';
-import {colors, fonts, spacing, getRandomEmptyMessage} from '../theme';
+import {colors, fonts, fontWeights, spacing, getRandomEmptyMessage} from '../theme';
 
 type RootStackParamList = {
   Home: undefined;
@@ -159,7 +159,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: fonts.title,
-    fontWeight: fonts.bold,
+    fontWeight: fontWeights.bold,
     color: colors.textPrimary,
   },
   subtitle: {
@@ -194,7 +194,7 @@ const styles = StyleSheet.create({
   },
   resolutionTitle: {
     fontSize: fonts.large,
-    fontWeight: fonts.semibold,
+    fontWeight: fontWeights.semibold,
     color: colors.textPrimary,
     flex: 1,
   },
@@ -240,7 +240,7 @@ const styles = StyleSheet.create({
   addButtonText: {
     color: colors.background,
     fontSize: fonts.medium,
-    fontWeight: fonts.semibold,
+    fontWeight: fontWeights.semibold,
   },
   fab: {
     position: 'absolute',
@@ -261,6 +261,6 @@ const styles = StyleSheet.create({
   fabText: {
     fontSize: 28,
     color: colors.background,
-    fontWeight: fonts.bold,
+    fontWeight: fontWeights.bold,
   },
 });

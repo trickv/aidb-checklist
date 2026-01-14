@@ -17,7 +17,7 @@ import {
   createResolution,
   createMilestone,
 } from '../storage/resolutions';
-import {colors, fonts, spacing, placeholders} from '../theme';
+import {colors, fonts, fontWeights, spacing, placeholders} from '../theme';
 
 type RootStackParamList = {
   Home: undefined;
@@ -249,7 +249,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: fonts.large,
-    fontWeight: fonts.semibold,
+    fontWeight: fontWeights.semibold,
     color: colors.textPrimary,
   },
   cancelButton: {
@@ -259,7 +259,7 @@ const styles = StyleSheet.create({
   saveButton: {
     fontSize: fonts.medium,
     color: colors.primary,
-    fontWeight: fonts.semibold,
+    fontWeight: fontWeights.semibold,
   },
   scrollView: {
     flex: 1,
@@ -273,7 +273,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: fonts.medium,
-    fontWeight: fonts.semibold,
+    fontWeight: fontWeights.semibold,
     color: colors.textPrimary,
     marginBottom: spacing.sm,
   },
@@ -318,7 +318,7 @@ const styles = StyleSheet.create({
   deleteButtonText: {
     color: colors.warning,
     fontSize: fonts.xlarge,
-    fontWeight: fonts.bold,
+    fontWeight: fontWeights.bold,
   },
   dateInput: {
     color: colors.textSecondary,
@@ -339,6 +339,6 @@ const styles = StyleSheet.create({
   addMilestoneText: {
     color: colors.primary,
     fontSize: fonts.medium,
-    fontWeight: fonts.semibold,
+    fontWeight: fontWeights.semibold,
   },
 });

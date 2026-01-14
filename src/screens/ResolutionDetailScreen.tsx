@@ -23,7 +23,7 @@ import {
   saveResolutions,
   createJournalEntry,
 } from '../storage/resolutions';
-import {colors, fonts, spacing, emptyStates} from '../theme';
+import {colors, fonts, fontWeights, spacing, emptyStates} from '../theme';
 
 type RootStackParamList = {
   Home: undefined;
@@ -326,7 +326,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: fonts.title,
-    fontWeight: fonts.bold,
+    fontWeight: fontWeights.bold,
     color: colors.textPrimary,
   },
   titleComplete: {
@@ -348,7 +348,7 @@ const styles = StyleSheet.create({
   },
   completeBadgeText: {
     color: colors.textPrimary,
-    fontWeight: fonts.semibold,
+    fontWeight: fontWeights.semibold,
     fontSize: fonts.small,
   },
   section: {
@@ -356,7 +356,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: fonts.large,
-    fontWeight: fonts.semibold,
+    fontWeight: fontWeights.semibold,
     color: colors.textPrimary,
     marginBottom: spacing.md,
   },
@@ -391,7 +391,7 @@ const styles = StyleSheet.create({
   },
   checkmark: {
     color: colors.background,
-    fontWeight: fonts.bold,
+    fontWeight: fontWeights.bold,
     fontSize: fonts.small,
   },
   milestoneContent: {
@@ -440,7 +440,7 @@ const styles = StyleSheet.create({
   },
   journalAddButtonText: {
     color: colors.background,
-    fontWeight: fonts.semibold,
+    fontWeight: fontWeights.semibold,
   },
   journalEntry: {
     backgroundColor: colors.surface,
@@ -471,7 +471,7 @@ const styles = StyleSheet.create({
   },
   editButtonText: {
     color: colors.primary,
-    fontWeight: fonts.semibold,
+    fontWeight: fontWeights.semibold,
     fontSize: fonts.medium,
   },
   deleteButton: {
@@ -482,7 +482,7 @@ const styles = StyleSheet.create({
   },
   deleteButtonText: {
     color: colors.warning,
-    fontWeight: fonts.semibold,
+    fontWeight: fontWeights.semibold,
     fontSize: fonts.medium,
   },
 });

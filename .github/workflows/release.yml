@@ -60,11 +60,14 @@ jobs:
     - name: Build iOS for device (Release, unsigned)
       working-directory: ./ios
       run: |
+        VERSION_NUM="${{ steps.version.outputs.version }}"
+        VERSION_NUM="${VERSION_NUM#v}"
         xcodebuild -workspace ResolutionTracker.xcworkspace \
           -scheme ResolutionTracker \
           -sdk iphoneos \
           -configuration Release \
           -derivedDataPath build \
+          -xcconfig <(echo 'MARKETING_VERSION = '"${VERSION_NUM}") \
           CODE_SIGN_IDENTITY="" \
           CODE_SIGNING_REQUIRED=NO \
           CODE_SIGNING_ALLOWED=NO \

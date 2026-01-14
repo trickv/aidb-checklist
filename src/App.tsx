@@ -1,47 +1,68 @@
 import React from 'react';
-import {SafeAreaView, StyleSheet, Text, View} from 'react-native';
+import {StatusBar} from 'react-native';
+import {NavigationContainer} from '@react-navigation/native';
+import {createNativeStackNavigator} from '@react-navigation/native-stack';
+import {SafeAreaProvider} from 'react-native-safe-area-context';
+import {GestureHandlerRootView} from 'react-native-gesture-handler';
+
+import HomeScreen from './screens/HomeScreen';
+import ResolutionDetailScreen from './screens/ResolutionDetailScreen';
+import ResolutionEditScreen from './screens/ResolutionEditScreen';
+import {colors} from './theme';
+
+type RootStackParamList = {
+  Home: undefined;
+  ResolutionDetail: {id: string};
+  ResolutionEdit: {id?: string};
+};
+
+const Stack = createNativeStackNavigator<RootStackParamList>();
 
 function App(): React.JSX.Element {
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
-        <Text style={styles.title}>Resolution Tracker</Text>
-        <Text style={styles.subtitle}>Hello World!</Text>
-        <Text style={styles.description}>
-          Your 2025 resolutions will go here.
-        </Text>
-      </View>
-    </SafeAreaView>
+    <GestureHandlerRootView style={{flex: 1}}>
+      <SafeAreaProvider>
+        <NavigationContainer>
+          <StatusBar barStyle="light-content" backgroundColor={colors.background} />
+          <Stack.Navigator
+            screenOptions={{
+              headerStyle: {
+                backgroundColor: colors.background,
+              },
+              headerTintColor: colors.textPrimary,
+              headerTitleStyle: {
+                fontWeight: '600',
+              },
+              contentStyle: {
+                backgroundColor: colors.background,
+              },
+            }}>
+            <Stack.Screen
+              name="Home"
+              component={HomeScreen}
+              options={{headerShown: false}}
+            />
+            <Stack.Screen
+              name="ResolutionDetail"
+              component={ResolutionDetailScreen}
+              options={{
+                title: 'Resolution',
+                headerBackTitle: 'Back',
+              }}
+            />
+            <Stack.Screen
+              name="ResolutionEdit"
+              component={ResolutionEditScreen}
+              options={{
+                headerShown: false,
+                presentation: 'modal',
+              }}
+            />
+          </Stack.Navigator>
+        </NavigationContainer>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-  content: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 10,
-  },
-  subtitle: {
-    fontSize: 24,
-    color: '#666',
-    marginBottom: 20,
-  },
-  description: {
-    fontSize: 16,
-    color: '#888',
-    textAlign: 'center',
-  },
-});
 
 export default App;

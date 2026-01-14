@@ -62,12 +62,13 @@ jobs:
       run: |
         VERSION_NUM="${{ steps.version.outputs.version }}"
         VERSION_NUM="${VERSION_NUM#v}"
+        echo "MARKETING_VERSION = ${VERSION_NUM}" > /tmp/version.xcconfig
         xcodebuild -workspace ResolutionTracker.xcworkspace \
           -scheme ResolutionTracker \
           -sdk iphoneos \
           -configuration Release \
           -derivedDataPath build \
-          -xcconfig <(echo 'MARKETING_VERSION = '"${VERSION_NUM}") \
+          -xcconfig /tmp/version.xcconfig \
           CODE_SIGN_IDENTITY="" \
           CODE_SIGNING_REQUIRED=NO \
           CODE_SIGNING_ALLOWED=NO \

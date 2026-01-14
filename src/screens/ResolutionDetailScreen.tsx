@@ -83,6 +83,7 @@ export default function ResolutionDetailScreen({navigation, route}: Props) {
   const {id} = route.params;
   const [resolution, setResolution] = useState<Resolution | null>(null);
   const [allResolutions, setAllResolutions] = useState<Resolution[]>([]);
+  const [whatsNextText, setWhatsNextText] = useState('');
   const [newJournalText, setNewJournalText] = useState('');
   const [showConfetti, setShowConfetti] = useState(false);
   const confettiRef = useRef<any>(null);
@@ -94,6 +95,7 @@ export default function ResolutionDetailScreen({navigation, route}: Props) {
     const found = data.find(r => r.id === id);
     if (found) {
       setResolution(found);
+      setWhatsNextText(found.whatsNext || '');
       wasCompleteRef.current = isResolutionComplete(found);
     }
   }, [id]);
@@ -148,10 +150,13 @@ export default function ResolutionDetailScreen({navigation, route}: Props) {
     await saveAndUpdate(updated);
   };
 
-  const updateWhatsNext = async (text: string) => {
+  const saveWhatsNext = async () => {
     if (!resolution) return;
-    const updated = {...resolution, whatsNext: text};
-    await saveAndUpdate(updated);
+    // Only save if the text has changed
+    if (whatsNextText !== resolution.whatsNext) {
+      const updated = {...resolution, whatsNext: whatsNextText};
+      await saveAndUpdate(updated);
+    }
   };
 
   const addJournalEntry = async () => {
@@ -229,8 +234,9 @@ export default function ResolutionDetailScreen({navigation, route}: Props) {
           <Text style={styles.sectionTitle}>What's Next?</Text>
           <TextInput
             style={styles.whatsNextInput}
-            value={resolution.whatsNext}
-            onChangeText={updateWhatsNext}
+            value={whatsNextText}
+            onChangeText={setWhatsNextText}
+            onBlur={saveWhatsNext}
             placeholder="What's the next small step? (Don't Panic)"
             placeholderTextColor={colors.textMuted}
             multiline

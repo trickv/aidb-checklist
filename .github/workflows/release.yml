@@ -95,12 +95,42 @@ jobs:
         echo "Created IPA:"
         ls -la *.ipa
 
+    - name: Generate changelog
+      id: changelog
+      run: |
+        VERSION="${{ steps.version.outputs.version }}"
+
+        # Get previous tag
+        PREV_TAG=$(git tag --sort=-version:refname | grep -v "^${VERSION}$" | head -1)
+
+        if [ -z "$PREV_TAG" ]; then
+          echo "changelog=Initial release" >> $GITHUB_OUTPUT
+        else
+          # Get commits since last tag, format them nicely
+          CHANGELOG=$(git log ${PREV_TAG}..${VERSION} --pretty=format:"- %s" --no-merges | sed 's/Co-Authored-By:.*$//' | sed 's/[[:space:]]*$//')
+
+          # If no changelog, use a default message
+          if [ -z "$CHANGELOG" ]; then
+            CHANGELOG="Bug fixes and improvements"
+          fi
+
+          # Output for GitHub (multiline)
+          {
+            echo 'changelog<<EOF'
+            echo "$CHANGELOG"
+            echo EOF
+          } >> $GITHUB_OUTPUT
+        fi
+
     - name: Generate AltStore source JSON
       run: |
         VERSION="${{ steps.version.outputs.version }}"
         VERSION_NUM="${VERSION#v}"
         DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
         IPA_SIZE=$(stat -f%z ios/build/Build/Products/ResolutionTracker-${VERSION}.ipa 2>/dev/null || stat -c%s ios/build/Build/Products/ResolutionTracker-${VERSION}.ipa)
+
+        # Escape changelog for JSON
+        CHANGELOG=$(echo '${{ steps.changelog.outputs.changelog }}' | jq -Rs .)
 
         cat > altstore-source.json << EOF
         {
@@ -123,7 +153,7 @@ jobs:
                   "date": "${DATE}",
                   "size": ${IPA_SIZE},
                   "downloadURL": "https://github.com/trickv/aidb-checklist/releases/download/${VERSION}/ResolutionTracker-${VERSION}.ipa",
-                  "localizedDescription": "Initial release"
+                  "localizedDescription": ${CHANGELOG}
                 }
               ]
             }
@@ -141,6 +171,9 @@ jobs:
         name: Resolution Tracker ${{ steps.version.outputs.version }}
         body: |
           ## Resolution Tracker ${{ steps.version.outputs.version }}
+
+          ### What's Changed
+          ${{ steps.changelog.outputs.changelog }}
 
           ### Installation via AltStore
 

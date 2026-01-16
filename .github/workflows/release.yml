@@ -22,6 +22,8 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Fetch all history and tags for changelog generation
 
     - name: Set up Node.js
       uses: actions/setup-node@v4
@@ -100,14 +102,21 @@ jobs:
       run: |
         VERSION="${{ steps.version.outputs.version }}"
 
+        # Fetch all tags to ensure we have them
+        git fetch --tags
+
         # Get previous tag
         PREV_TAG=$(git tag --sort=-version:refname | grep -v "^${VERSION}$" | head -1)
+
+        echo "Current version: ${VERSION}"
+        echo "Previous version: ${PREV_TAG}"
 
         if [ -z "$PREV_TAG" ]; then
           echo "changelog=Initial release" >> $GITHUB_OUTPUT
         else
           # Get commits since last tag, format them nicely
-          CHANGELOG=$(git log ${PREV_TAG}..${VERSION} --pretty=format:"- %s" --no-merges | sed 's/Co-Authored-By:.*$//' | sed 's/[[:space:]]*$//')
+          # Remove Co-Authored-By lines and trailing whitespace
+          CHANGELOG=$(git log ${PREV_TAG}..${VERSION} --pretty=format:"- %s" --no-merges | grep -v "Co-Authored-By:" | sed 's/[[:space:]]*$//')
 
           # If no changelog, use a default message
           if [ -z "$CHANGELOG" ]; then
